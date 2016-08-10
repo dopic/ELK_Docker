@@ -10,7 +10,7 @@ var client = net.createConnection(5000, ()=>{
     let message = {
         id: uuid.v4(),
         correlationId: uuid.v4(),
-        message: 'Conection Test',
+        message: 'Connection Test',
         host: ip.address(),
         hostName: os.hostname(),
         os: os.type(),
