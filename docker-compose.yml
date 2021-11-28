@@ -42,7 +42,15 @@ services:
           - output.elasticsearch.hosts=["elastic:9200"]
         volumes:
           - "./config/apm-server.yml:/usr/share/apm-server/apm-server.yml:ro"
-    
+    sampleapp:
+        build: 
+            context: ./src/SampleApplication/
+            dockerfile: ./SampleApplication/Dockerfile
+        environment:
+          - "ELASTIC_APM_SERVER_URL=http://apm:8200"
+          - "ASPNETCORE_ENVIRONMENT=Development"
+        ports:
+          - 8888:80
 
 volumes:
     data:
