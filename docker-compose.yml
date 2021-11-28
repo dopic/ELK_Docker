@@ -1,23 +1,50 @@
-version: "2"
+version: "3.6"
 services:
     elastic:
-        image: elasticsearch:2.3   
-        command: elasticsearch -Des.network.host=0.0.0.0 
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.15.2
+        environment:
+            - discovery.type=single-node
+            - cluster.name=es-docker-cluster
+            - node.name=es01
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
         volumes: 
-            - "/elasticsearch/data:/usr/share/elasticsearch/data"
-    logstash:
-        build: logstash/
-        command: logstash -f /logstash/logstash.conf
+            - data:/usr/share/elasticsearch/data
         ports:
-            - "5000:5000"
+            - "9200:9200"
+            - "9300:9300"
+
     kibana:
-        image: kibana:4.5
+        image: docker.elastic.co/kibana/kibana:7.15.2
+        environment:
+            ELASTICSEARCH_HOSTS: '["http://elastic:9200"]'
+        volumes:
+            - kibana-data:/usr/share/kibana/data
+            - kibana-config:/usr/share/kibana/config
         ports:
-            - "80:5601"
-        environment: 
-            - ELASTICSEARCH_URL=http://elastic:9200 
+            - "5601:5601"
+    logstash:
+        image: docker.elastic.co/logstash/logstash:7.15.2
+        ports:
+            - "5100:5000"
+        environment:
+            - xpack.monitoring.elasticsearch.hosts=http://elastic:9200
+        volumes:
+            - "./config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro"
+    apm:
+        image: docker.elastic.co/apm/apm-server:7.15.2
+        ports:
+            - "8200:8200"
+        environment:
+          - output.elasticsearch.hosts=["elastic:9200"]
+        volumes:
+          - "./config/apm-server.yml:/usr/share/apm-server/apm-server.yml:ro"
+    
 
-
-
-   
-
+volumes:
+    data:
+    kibana-data:
+    kibana-config:
